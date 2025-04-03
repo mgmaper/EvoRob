@@ -35,14 +35,18 @@ class AckleyWorld(World):
         fitness = f_reversed_ackley(x, y)
         return fitness
 
-
 class MyWorld(World): #TODO
+    def __init__(self):
+        self.n_params = 2
 
     def geno2pheno(self, genotype):
-        raise NotImplementedError
+        x, y = genotype
+        return np.array([x, y])
 
     def evaluate_individual(self, genotype):
-        raise NotImplementedError
+        x, y = self.geno2pheno(genotype)
+        fitness = f_reversed_ackley(x, y)
+        return fitness
 
 
 def run_EA(ea, world):
@@ -79,24 +83,56 @@ def main():
     #TODO: Load the results and make a fitness curve plot.
     fitnesses_full = np.load(os.path.join(results_dir, 'full_f.npy'))
 
+    mean_f = np.mean(fitnesses_full, axis=1)
+    std_f = np.std(fitnesses_full, axis=1)
+    gens = np.arange(0, 100, 1)
+    plt.plot(gens, mean_f, color='r')
+    plt.fill_between(gens, mean_f - std_f, mean_f + std_f, alpha=0.5)
+    plt.xlabel('Generation')
+    plt.ylabel('Fitness')
+    plt.savefig('Ackley_f.pdf')
+    plt.close()
+
 
     #%% Change the World
     #TODO: Implement your world
     myworld = MyWorld()
+    n_parameters = myworld.n_params
+
+    ea = ES(100, n_parameters, ES_opts, results_dir)
     run_EA(ea, myworld)
 
 
-    #%% Change the EA
-    #TODO: Change the ea function
-    from src.EA.CMAES import CMAES, CMAES_opts
-    CMAES_opts["min"]= -4
-    CMAES_opts["max"]= 4
-    CMAES_opts["num_generations"]= 100
-    CMAES_opts["mutation_sigma"]= 0.3
-    results_dir = os.path.join(ROOT_DIR, 'results', ENV_NAME, 'CMAES')
-    ea = CMAES(population_size, n_parameters, CMAES_opts, results_dir)
+    # %% Change the EA
+    # TODO: Change the ea function
+    from src.EA.CMAES_sol import CMAES, CMAES_opts
+    CMAES_opts["min"] = -4
+    CMAES_opts["max"] = 4
+    CMAES_opts["num_generations"] = 100
+    CMAES_opts["mutation_sigma"] = 0.3
+    results_dir_cmaes = os.path.join(ROOT_DIR, 'results', ENV_NAME, 'CMAES')
+    ea = CMAES(population_size, n_parameters, CMAES_opts, results_dir_cmaes)
 
     run_EA(ea, myworld)
+
+    fitnesses_es = np.load(os.path.join(results_dir, 'full_f.npy'))
+    fitnesses_cmaes = np.load(os.path.join(results_dir_cmaes, 'full_f.npy'))
+
+    mean_f_es = np.mean(fitnesses_es, axis=1)
+    mean_f_cmaes = np.mean(fitnesses_cmaes, axis=1)
+
+    std_f_es = np.std(fitnesses_es, axis=1)
+    std_f_cmaes = np.std(fitnesses_cmaes, axis=1)
+
+    gens = np.arange(0, 100, 1)
+    plt.plot(gens, mean_f_es, color='k', label='ES')
+    plt.plot(gens, mean_f_cmaes, color='r', label='CMAES')
+    plt.fill_between(gens, mean_f_es - std_f_es, mean_f_es + std_f_es, color='k', alpha=0.5)
+    plt.fill_between(gens, mean_f_cmaes - std_f_cmaes, mean_f_cmaes + std_f_cmaes, color='r', alpha=0.5)
+    plt.legend(loc='best')
+    plt.xlabel('Generation')
+    plt.ylabel('Fitness')
+    plt.savefig('my_world_f.pdf')
 
 
 if __name__ == '__main__':
