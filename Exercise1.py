@@ -34,12 +34,12 @@ class PPO_controller():
 
 class CheetahWorld(World):
     def __init__(self):
-        self.env = gym.make(ENV_NAME)
-        action_space = self.env.action_space.shape[0]  # https://gymnasium.farama.org/environments/mujoco/half_cheetah/#action-space
-        state_space = self.env.observation_space.shape[0]  # https://gymnasium.farama.org/environments/mujoco/half_cheetah/#observation-space
+        self.env = gym.make(ENV_NAME) # = HalfCheetah-v5
+        action_space = self.env.action_space.shape[0]  # = 6 https://gymnasium.farama.org/environments/mujoco/half_cheetah/#action-space
+        state_space = self.env.observation_space.shape[0]  # = 17 https://gymnasium.farama.org/environments/mujoco/half_cheetah/#observation-space
         self.controller = MLP.NNController(state_space, action_space)
         self.dt = self.env.get_wrapper_attr('dt')
-        self.n_params = ...  # TODO
+        self.n_params = self.controller.n_params # = state_space**2 + action_space * state_space TODO
 
     def geno2pheno(self, genotype):
         self.controller.geno2pheno(genotype)
@@ -54,6 +54,7 @@ class CheetahWorld(World):
         rewards_list = []
         observations, info = self.env.reset(seed=42)
         for step in range(n_sim_steps):
+
             action = self.controller.get_action(observations)
             observations, rewards, terminated, truncated, info = self.env.step(action)
             rewards_list.append(rewards)
@@ -99,11 +100,11 @@ def main():
     n_parameters = world.n_params
 
     # TODO: improve the ES settings
-    CMAES_opts["min"] = -10
-    CMAES_opts["max"] = 10
+    CMAES_opts["min"] = -4
+    CMAES_opts["max"] = 4
     CMAES_opts["num_parents"] = 100
     CMAES_opts["num_generations"] = 100
-    CMAES_opts["mutation_sigma"] = 2.5
+    CMAES_opts["mutation_sigma"] = 0.3
 
     population_size = 50
 
@@ -113,7 +114,7 @@ def main():
     run_EA(ea, world)
 
     # %% Make video of best behaviour
-    best_individual = np.load(os.path.join(results_dir, f"{CMAES_opts["num_generations"]-1}", "x_best.npy"))
+    best_individual = np.load(os.path.join(results_dir, f"{CMAES_opts['num_generations']-1}", "x_best.npy"))
     world.controller.geno2pheno(best_individual)
 
     generate_best_individual_video(world.controller)
@@ -123,7 +124,7 @@ def main():
     ppo = PPO("MlpPolicy", env, device=torch.device('cpu'))
     trial_time = 50  # seconds in simulation
     n_sim_steps = int(trial_time / world.dt)
-    n_total_steps = ...  # TODO
+    n_total_steps = CMAES_opts["num_generations"] * population_size * n_sim_steps  # TODO
     ppo.learn(total_timesteps=n_total_steps)
     ppo_controller = PPO_controller(ppo)
 
