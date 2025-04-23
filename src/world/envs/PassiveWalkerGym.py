@@ -140,7 +140,7 @@ class PassiveWalkerEnv(MujocoEnv, utils.EzPickle):
         xy_velocity = (xy_position_after - xy_position_before) / self.dt
         x_velocity, y_velocity = xy_velocity
 
-        forward_reward = x_velocity * self._forward_reward_weight
+        forward_reward = (x_velocity - y_velocity) * self._forward_reward_weight
 
         #TODO
         reward = forward_reward

@@ -22,6 +22,7 @@ ENV_NAME = "PassiveWalker-v0"
 class PassiveWalkerWorld(World):
     def __init__(self, ):
         self.n_params = 6
+        self.n_params = 3
         self.world_file = os.path.join(ROOT_DIR, "PassiveWalkerEnv.xml")
         self.slope_height = np.sin(5 * np.pi / 180) * 5
         self.env = gym.make(
@@ -33,21 +34,23 @@ class PassiveWalkerWorld(World):
 
     def geno2pheno(self, genotype):
         # TODO Improve the genotype to phenotype mapping
-        assert len(genotype) == 6
-        right_up_leg, right_low_leg, right_foot, left_up_leg, left_low_leg, left_foot = genotype
+        # assert len(genotype) == 6
+        # right_up_leg, right_low_leg, right_foot, left_up_leg, left_low_leg, left_foot = genotype
+        assert len(genotype) == 3
+        up_leg, low_leg, foot = genotype
 
         # Define the 3D coordinates of the relative tree structure
-        right_hip_xyz   = np.array([0         ,-0.05    , 0            ])
-        right_knee_xyz  = np.array([0         , 0       ,-right_up_leg ]) + right_hip_xyz
-        right_ankle_xyz = np.array([0         , 0       ,-right_low_leg]) + right_knee_xyz
-        right_toe1_xyz  = np.array([right_foot,-0.025   , 0            ]) + right_ankle_xyz
-        right_toe2_xyz  = np.array([0         , 0.06    , 0            ]) + right_toe1_xyz
+        right_hip_xyz   = np.array([0         ,-0.05    , 0      ])
+        right_knee_xyz  = np.array([0         , 0       ,-up_leg ]) + right_hip_xyz
+        right_ankle_xyz = np.array([0         , 0       ,-low_leg]) + right_knee_xyz
+        right_toe1_xyz  = np.array([foot,-0.025   , 0            ]) + right_ankle_xyz
+        right_toe2_xyz  = np.array([0         , 0.06    , 0      ]) + right_toe1_xyz
 
-        left_hip_xyz    = np.array([0         , 0.05    , 0            ])
-        left_knee_xyz   = np.array([0         , 0       ,-left_up_leg  ]) + left_hip_xyz
-        left_ankle_xyz  = np.array([0         , 0       ,-left_low_leg ]) + left_knee_xyz
-        left_toe1_xyz   = np.array([left_foot , 0.025   , 0            ]) + left_ankle_xyz
-        left_toe2_xyz   = np.array([0         ,-0.06    , 0            ]) + left_toe1_xyz
+        left_hip_xyz    = np.array([0         , 0.05    , 0      ])
+        left_knee_xyz   = np.array([0         , 0       ,-up_leg ]) + left_hip_xyz
+        left_ankle_xyz  = np.array([0         , 0       ,-low_leg]) + left_knee_xyz
+        left_toe1_xyz   = np.array([foot , 0.025   , 0           ]) + left_ankle_xyz
+        left_toe2_xyz   = np.array([0         ,-0.06    , 0      ]) + left_toe1_xyz
 
         points = np.vstack([right_hip_xyz, right_knee_xyz, right_ankle_xyz, right_toe1_xyz, right_toe2_xyz,
                             left_hip_xyz, left_knee_xyz, left_ankle_xyz, left_toe1_xyz, left_toe2_xyz, ])
@@ -168,8 +171,7 @@ def visualise_individual(genotype):
 
 def main():
     # %% Understanding the world
-    genotype = [0.3, 0.2, 0.1,
-                0.3, 0.2, 0.1]
+    genotype = [0.3, 0.2, 0.1]
     visualise_individual(genotype)
 
     # %% Defining environment
