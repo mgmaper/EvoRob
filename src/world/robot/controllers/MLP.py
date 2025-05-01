@@ -6,8 +6,6 @@ class NumpyNetwork:
     def __init__(self, n_input: int, n_hidden: int, n_output: int):
         """
         A minimalistic Neural Network, using numpy.
-        - One hidden layer: SoftReLU [0, inf]
-        - Output layer: sigmoid (0, 1)
 
         :param int n_input: Size of input vector
         :param int n_hidden: Size of hidden layer
